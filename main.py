@@ -11,5 +11,5 @@ if __name__ == "__main__":
 
 
 # TODO
-# Move solving entirely to Sudoku class.
 # Compare for horizontal and vertical. Not just inside the 3x3.
+# Visual indicator in console for which numbers are new?
