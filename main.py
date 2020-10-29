@@ -10,8 +10,6 @@ if __name__ == "__main__":
     main()
 
 
-# NOTE
-# Adding correct numbers one by one does not work on all sudoku.
-# Guesswork might be necessary.
-# Time to look up strategies for solving sudoku as a regular human bean.
-# I'd also prefer to have number validation happen in Sudoku rather than Cell in the future.
+# TODO
+# Move solving entirely to Sudoku class.
+# Compare for horizontal and vertical. Not just inside the 3x3.

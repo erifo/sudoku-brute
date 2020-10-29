@@ -10,13 +10,15 @@ class Cell:
         self.absolute = True
         self.candidates = [value]
     
-    def updateCandidates(self, cells):
+    def compareToAbsolutes(self, cells):
+        if self.isSet():
+            return
         newCandidates = []
         for candidate in self.candidates:
             if (self.isValidNumber(candidate, cells)):
                 newCandidates.append(candidate)
         if (self.candidates != newCandidates and len(newCandidates) == 1):
-            print("DEBUG: Cell", self.y, self.x, "has been set!")
+            print("DEBUG [Reduce]: Cell", self.y, self.x, "has been set!")
         self.candidates = newCandidates
         if (len(self.candidates) < 1):
             print("ERROR: Cell", self.y, self.x, "has zero candidates left.")
@@ -80,7 +82,7 @@ class Sudoku:
             if (cell.ID3x3 == id):
                 cells.append(cell)
         return cells
-        
+    
 
     def absoluteEntry(self, value, y, x):
         cell = self.getCell(y, x)
@@ -99,9 +101,16 @@ class Sudoku:
                 y += 1
             x = (x+1)%9
 
-    def debugSudoku(self):
-        for cell in self.cells:
-            print("Cell on coords:", cell.y, cell.x, "with value", cell.getValue(), "and candidates", cell.candidates)
+    def debugCell(self, cell):
+        print("Cell", cell.y, cell.x, "| ID:", cell.ID3x3, "| Value:", cell.getValue(), "| Cand:", cell.candidates)
+
+    def debugSudoku(self, y=None, x=None):
+        if (y == None or x == None):
+            for cell in self.cells:
+                self.debugCell(cell)
+        else:
+            cell = self.getCell(y,x)
+            self.debugCell(cell)
 
     def printSudoku(self):
         payload = ""
@@ -122,22 +131,37 @@ class Sudoku:
 
     def updateAllCandidates(self):
         for cell in self.cells:
-            cell.updateCandidates(self.cells)
+            cell.compareToAbsolutes(self.cells)
     
-    """
-    def progress3x3(self): # TODO: Use method of elimination to find where a number has to go.
-        for id in range(9): # 0-8, the ID of each 3x3.
-            for nr in range(1,10) # 1-9, The actual numbers in the cells.
-                cells = self.getCellsIn3x3(id)
-                filteredCells = []
-                for cell in cells:
-                    if (nr in cell.candidates and):
-                        filteredCells.append(cell)
-    """
+    def compareToCandidates(self):
+        # Compare itself with other cells in same 3x3 to determine if a certain number can only be here.
+        for id in range(9): # ID of each 3x3. 0-8.
+            cellsOfId = self.getCellsIn3x3(id) #Collect all cells in the 3x3 of that ID.
+            
+            #Disprove that the 3x3 is already complete. If complete, continue with next 3x3.
+            completed3x3 = True
+            for cell in cellsOfId:
+                if (not cell.isSet()):
+                    completed3x3 = False
+            if (completed3x3):
+                continue
+
+            for nr in range(1,9+1): # Each theoretically posible number entry in a cell. 1-9.
+                validCells = []
+                for cell in cellsOfId:
+                    if (nr in cell.candidates):
+                        validCells.append(cell)
+                if (len(validCells) == 1 and not validCells[0].isSet()):
+                    validCells[0].candidates = [nr] #Remove all candidates of cell except for "nr"! Cell solved!
+                    print("DEBUG [Compare]: Cell", validCells[0].y, validCells[0].x, "has been set!")
+
 
     def solve(self):
         while(True):
-            self.debugSudoku()
+            self.debugSudoku(0,1)
+            self.debugSudoku(8,1)
+            self.debugSudoku(8,2)
             self.printSudoku()
             input()
             self.updateAllCandidates()
+            self.compareToCandidates()
