@@ -161,14 +161,15 @@ class Sudoku:
 
     def solve(self):
         iterations = 0
+        self.printSudoku()
+        print("Sudoku loading complete.")
+        input("PRESS ENTER TO ITERATE")
         while(True):
             iterations += 1
-            #self.debugSudoku()
-            self.printSudoku()
-            input()
             self.compareToAbsolutes()
             self.compareToCandidates3x3()
+            self.printSudoku()
             if (self.isSolved()):
-                self.printSudoku()
                 print("SUDOKU SOLVED IN", iterations, "ITERATIONS")
                 break
+            input()
