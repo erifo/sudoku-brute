@@ -67,14 +67,23 @@ class Sudoku:
         cell = self.getCell(y, x)
         cell.makeAbsolute(value, y, x)
 
-    def textToAbsolutes(self, text): 
+    def textToAbsolutes(self, text):
+        if (len(text) != 81):
+            print("ERROR: String must consist of exactly 81 characters. Current length:", len(text))
+            print("Loading aborted.")
+            return
+        for char in text:
+            if (char not in ".123456789"):
+                print("ERROR: String can only consist of numbers 1-9 and periods for blank spaces.")
+                print("Loading aborted.")
+                return
         y = 0
         x = 0
         for char in text:
             if (char != "."): #Periods represent blanks.
                 self.absoluteEntry(int(char), y, x)
             if (y == 8 and x == 8):
-                print("Final cell reached.")
+                print("Sudoku loading complete")
                 return
             if (x == 8):
                 y += 1
@@ -163,7 +172,6 @@ class Sudoku:
     def solve(self):
         iterations = 0
         self.printSudoku()
-        print("Sudoku loading complete.")
         input("PRESS ENTER TO ITERATE")
         while(True):
             iterations += 1
