@@ -47,12 +47,14 @@ class Sudoku:
                 return cell
     
     def getCellsIn3x3(self, id):
-        cells = []
-        for cell in self.cells:
-            if (cell.ID3x3 == id):
-                cells.append(cell)
-        return cells
-    
+        return [cell for cell in self.cells if cell.ID3x3 == id] 
+
+    def getCellsInRow(self, y):
+        return [cell for cell in self.cells if cell.y == y]
+
+    def getCellsInColumn(self, x):
+        return [cell for cell in self.cells if cell.x == x]
+
     def isSolved(self):
         solved = True
         for cell in self.cells:
