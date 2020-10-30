@@ -93,13 +93,12 @@ class Sudoku:
     def debugCell(self, cell):
         print("Cell", cell.y, cell.x, "| RegionID:", cell.regionID, "| Candidates:", cell.candidates)
 
-    def debugSudoku(self, y=None, x=None):
-        if (y == None or x == None):
-            for cell in self.cells:
-                if (not cell.isSet()):
-                    self.debugCell(cell)
-        else:
-            cell = self.getCell(y,x)
+    def debugCellAt(self, y, x):
+        cell = self.getCell(y, x)
+        self.debugCell(cell)
+    
+    def debugCells(self, cells):
+        for cell in cells:
             self.debugCell(cell)
 
     def printSudoku(self):
@@ -128,7 +127,7 @@ class Sudoku:
                 if (self.isValidNumber(cell, candidate)):
                     newCandidates.append(candidate)
             if (cell.candidates != newCandidates and len(newCandidates) == 1):
-                self.solvedCellMsg("CompAbs", cell.y, cell.x)
+                self.solvedCellMsg("CompAbs", cell.y, cell.x, newCandidates[0])
             cell.candidates = newCandidates
             if (len(cell.candidates) < 1):
                 print("ERROR: Cell", cell.y, cell.x, "has zero candidates left.")
@@ -168,10 +167,10 @@ class Sudoku:
                         validCells.append(cell)
                 if (len(validCells) == 1 and not validCells[0].isSet()):
                     validCells[0].candidates = [nr] #Remove all candidates of cell except for "nr"! Cell solved!
-                    self.solvedCellMsg(cellGroupGetter.__name__, validCells[0].y, validCells[0].x)
+                    self.solvedCellMsg(cellGroupGetter.__name__, validCells[0].y, validCells[0].x, nr)
 
-    def solvedCellMsg(self, strategy, y, x):
-        print("SOLVING with [Comp("+strategy+")]: Cell", y, x, "has been set!")
+    def solvedCellMsg(self, strategy, y, x, val):
+        print("SOLVING with [Comp("+strategy+")]: Cell", y, x, "has been set to", val)
 
     def solve(self):
         iterations = 0
@@ -183,7 +182,7 @@ class Sudoku:
             self.compareToCandidates(self.getCellsInRegion)
             self.compareToCandidates(self.getCellsInRow)
             self.compareToCandidates(self.getCellsInColumn)
-            #self.debugSudoku()
+            self.debugCells(self.getCellsInRow(1))
             self.printSudoku()
             if (self.isSolved()):
                 print("SUDOKU SOLVED IN", iterations, "ITERATIONS")
