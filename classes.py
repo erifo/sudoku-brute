@@ -3,12 +3,12 @@ class Cell:
         self.y = y_pos
         self.x = x_pos
         self.candidates = [1,2,3,4,5,6,7,8,9]
-        self.ID3x3 = self.calcID3x3()
+        self.regionID = self.calcRegionID()
 
     def makeAbsolute(self, value, y, x):
         self.candidates = [value]
 
-    def calcID3x3(self): #Gets an ID for 3x3 belonged to, numbered 0-8.
+    def calcRegionID(self): #Gets an ID for Region belonged to, numbered 0-8.
         yComp = 0 #Arbitrary starting value.
         if (self.y < 3): yComp = 0
         elif (self.y < 6): yComp = 3
@@ -46,8 +46,8 @@ class Sudoku:
             if (cell.x == x and cell.y == y):
                 return cell
     
-    def getCellsIn3x3(self, id):
-        return [cell for cell in self.cells if cell.ID3x3 == id] 
+    def getCellsInRegion(self, id):
+        return [cell for cell in self.cells if cell.regionID == id] 
 
     def getCellsInRow(self, y):
         return [cell for cell in self.cells if cell.y == y]
@@ -83,19 +83,21 @@ class Sudoku:
             if (char != "."): #Periods represent blanks.
                 self.absoluteEntry(int(char), y, x)
             if (y == 8 and x == 8):
-                print("Sudoku loading complete")
+                clues = len([char for char in text if char != "."])
+                print("Sudoku loading complete. Clues:", clues)
                 return
             if (x == 8):
                 y += 1
             x = (x+1)%9
 
     def debugCell(self, cell):
-        print("Cell", cell.y, cell.x, "| ID:", cell.ID3x3, "| Value:", cell.getValue(), "| Cand:", cell.candidates)
+        print("Cell", cell.y, cell.x, "| RegionID:", cell.regionID, "| Candidates:", cell.candidates)
 
     def debugSudoku(self, y=None, x=None):
         if (y == None or x == None):
             for cell in self.cells:
-                self.debugCell(cell)
+                if (not cell.isSet()):
+                    self.debugCell(cell)
         else:
             cell = self.getCell(y,x)
             self.debugCell(cell)
@@ -126,7 +128,7 @@ class Sudoku:
                 if (self.isValidNumber(cell, candidate)):
                     newCandidates.append(candidate)
             if (cell.candidates != newCandidates and len(newCandidates) == 1):
-                print("DEBUG [CompAbs]: Cell", cell.y, cell.x, "has been set!")
+                self.solvedCellMsg("CompAbs", cell.y, cell.x)
             cell.candidates = newCandidates
             if (len(cell.candidates) < 1):
                 print("ERROR: Cell", cell.y, cell.x, "has zero candidates left.")
@@ -134,7 +136,7 @@ class Sudoku:
     def isValidNumber(self, cell, attemptedValue):
         if (self.positionConflict(cell, attemptedValue, lambda c1,c2:c1.x==c2.x)): return False
         if (self.positionConflict(cell, attemptedValue, lambda c1,c2:c1.y==c2.y)): return False
-        if (self.positionConflict(cell, attemptedValue, lambda c1,c2:c1.ID3x3==c2.ID3x3)): return False
+        if (self.positionConflict(cell, attemptedValue, lambda c1,c2:c1.regionID==c2.regionID)): return False
         return True
 
     def positionConflict(self, c1, attemptedValue, conflictType):
@@ -147,9 +149,9 @@ class Sudoku:
                 return True
     
     def compareToCandidates(self, cellGroupGetter):
-        # Compare itself with other cells in same 3x3 to determine if a certain number can only be here.
-        for i in range(9): # ID of each 3x3, row, or column. 0-8.
-            cellGroup = cellGroupGetter(i) #Collect all cells in the 3x3 of that ID.
+        # Compare itself with other cells in same Region to determine if a certain number can only be here.
+        for i in range(9): # ID of each Region, row, or column. 0-8.
+            cellGroup = cellGroupGetter(i) #Collect all cells in the Region of that ID.
             
             #Disprove that the group is already complete. If complete, continue with next index.
             groupCompleted = True
@@ -166,8 +168,10 @@ class Sudoku:
                         validCells.append(cell)
                 if (len(validCells) == 1 and not validCells[0].isSet()):
                     validCells[0].candidates = [nr] #Remove all candidates of cell except for "nr"! Cell solved!
-                    print("DEBUG [Comp("+cellGroupGetter.__name__+")]: Cell", validCells[0].y, validCells[0].x, "has been set!")
+                    self.solvedCellMsg(cellGroupGetter.__name__, validCells[0].y, validCells[0].x)
 
+    def solvedCellMsg(self, strategy, y, x):
+        print("SOLVING with [Comp("+strategy+")]: Cell", y, x, "has been set!")
 
     def solve(self):
         iterations = 0
@@ -176,9 +180,10 @@ class Sudoku:
         while(True):
             iterations += 1
             self.compareToAbsolutes()
-            self.compareToCandidates(self.getCellsIn3x3)
+            self.compareToCandidates(self.getCellsInRegion)
             self.compareToCandidates(self.getCellsInRow)
             self.compareToCandidates(self.getCellsInColumn)
+            #self.debugSudoku()
             self.printSudoku()
             if (self.isSolved()):
                 print("SUDOKU SOLVED IN", iterations, "ITERATIONS")
