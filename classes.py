@@ -108,7 +108,6 @@ class Sudoku:
                 payload += "\n"
         print(payload)
 
-
     def compareToAbsolutes(self):
         for cell in self.cells:
             if cell.isSet():
@@ -138,27 +137,27 @@ class Sudoku:
             if (conflictType(c1, c2) and attemptedValue == c2.getValue()):
                 return True
     
-    def compareToCandidates3x3(self):
+    def compareToCandidates(self, cellGroupGetter):
         # Compare itself with other cells in same 3x3 to determine if a certain number can only be here.
-        for id in range(9): # ID of each 3x3. 0-8.
-            cellsOfId = self.getCellsIn3x3(id) #Collect all cells in the 3x3 of that ID.
+        for i in range(9): # ID of each 3x3, row, or column. 0-8.
+            cellGroup = cellGroupGetter(i) #Collect all cells in the 3x3 of that ID.
             
-            #Disprove that the 3x3 is already complete. If complete, continue with next 3x3.
-            completed3x3 = True
-            for cell in cellsOfId:
+            #Disprove that the group is already complete. If complete, continue with next index.
+            groupCompleted = True
+            for cell in cellGroup:
                 if (not cell.isSet()):
-                    completed3x3 = False
-            if (completed3x3):
+                    groupCompleted = False
+            if (groupCompleted):
                 continue
 
             for nr in range(1,9+1): # Each theoretically posible number entry in a cell. 1-9.
                 validCells = []
-                for cell in cellsOfId:
+                for cell in cellGroup:
                     if (nr in cell.candidates):
                         validCells.append(cell)
                 if (len(validCells) == 1 and not validCells[0].isSet()):
                     validCells[0].candidates = [nr] #Remove all candidates of cell except for "nr"! Cell solved!
-                    print("DEBUG [CompCand3x3]: Cell", validCells[0].y, validCells[0].x, "has been set!")
+                    print("DEBUG [Comp("+cellGroupGetter.__name__+")]: Cell", validCells[0].y, validCells[0].x, "has been set!")
 
 
     def solve(self):
@@ -169,7 +168,9 @@ class Sudoku:
         while(True):
             iterations += 1
             self.compareToAbsolutes()
-            self.compareToCandidates3x3()
+            self.compareToCandidates(self.getCellsIn3x3)
+            self.compareToCandidates(self.getCellsInRow)
+            self.compareToCandidates(self.getCellsInColumn)
             self.printSudoku()
             if (self.isSolved()):
                 print("SUDOKU SOLVED IN", iterations, "ITERATIONS")
