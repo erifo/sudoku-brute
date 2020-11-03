@@ -15,6 +15,8 @@ def main():
     #25 clues. Unable to solve.
     #s.textToAbsolutes("7...4...5...2.8.....1.3.2...8.....9.3.2.7.5.6.9.....2...3.6.4.....1.3...9...8...7")
     
+    #26 clues. Unable to solve. Supposedly "Evil" difficulty.
+    #s.textToAbsolutes(".....8...64.5....75..79....49....2...83...17...5....69....75..67....2.48...1.....")
 
     s.solve()
 
