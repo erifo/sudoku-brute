@@ -223,6 +223,7 @@ class Sudoku:
                 continue
             if (nr in cell.candidates and not cell.isSet()):
                 #print("DEBUG:",cellGroupGetter.__name__, "| Region:", regionID, "| AxisIndex:", axisIndex, "| Removing candidate", nr, "from cell", cell.y, cell.x)
+                self.eliminatedCandMsg("AxisElimination", cell.y, cell.x, nr)
                 cell.candidates.remove(nr)
                 if (cell.isSet()):
                     self.solvedCellMsg("AxisElimination", cell.y, cell.x, cell.getValue())
@@ -230,6 +231,10 @@ class Sudoku:
 
     def solvedCellMsg(self, strategy, y, x, val):
         print("SOLVING with [Comp("+strategy+")]: Cell", y, x, "has been set to", val)
+    
+    def eliminatedCandMsg(self, strategy, y, x, val):
+        print("SOLVING with [Comp("+strategy+")]: Cell", y, x, "has lost candidate", val)
+
 
     def solve(self):
         iterations = 0
