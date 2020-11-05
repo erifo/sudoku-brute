@@ -8,5 +8,5 @@ Existing algorithms have not been studied, as the purpose of this exercise is to
 ### Future Improvements
 * Thoroughly written comments for the code.
 * Visual indicator for newly solved cells each iteration.
-* More intelligent algorithm for solving more complex sudoku.
 * Option to import and solve multiple sudoku from textfile source.
+* More intelligent algorithm for solving more complex sudoku.
