@@ -1,4 +1,4 @@
-from classes import Sudoku
+from sudoku import Sudoku
 
 def main():
     s = Sudoku()
