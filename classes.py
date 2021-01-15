@@ -5,7 +5,7 @@ class Cell:
         self.candidates = [1,2,3,4,5,6,7,8,9]
         self.regionID = self.calcRegionID()
 
-    def makeAbsolute(self, value, y, x):
+    def makeAbsolute(self, value):
         self.candidates = [value]
 
     def calcRegionID(self): #Gets an ID for Region belonged to, numbered 0-8.
@@ -33,6 +33,7 @@ class Cell:
 class Sudoku:
     def __init__(self):
         self.cells = self.initCells()
+        self.hasChanged = False
 
     def initCells(self):
         cells = []
@@ -61,11 +62,10 @@ class Sudoku:
             if (not cell.isSet()):
                 solved = False
         return solved
-    
 
     def absoluteEntry(self, value, y, x):
         cell = self.getCell(y, x)
-        cell.makeAbsolute(value, y, x)
+        cell.makeAbsolute(value)
 
     def textToAbsolutes(self, text):
         if (len(text) != 81):
@@ -128,6 +128,7 @@ class Sudoku:
                     newCandidates.append(candidate)
             if (cell.candidates != newCandidates and len(newCandidates) == 1):
                 self.solvedCellMsg("Absolute", cell.y, cell.x, newCandidates[0])
+                self.hasChanged = True
             cell.candidates = newCandidates
             if (len(cell.candidates) < 1):
                 print("ERROR: Cell", cell.y, cell.x, "has zero candidates left.")
@@ -171,6 +172,7 @@ class Sudoku:
                 if (len(validCells) == 1 and not validCells[0].isSet()):
                     validCells[0].candidates = [nr] #Remove all candidates of cell except for "nr"! Cell solved!
                     self.solvedCellMsg(cellGroupGetter.__name__, validCells[0].y, validCells[0].x, nr)
+                    self.hasChanged = True
 
     def eliminateFromAxis(self): #Removes candidates from both axis by method of elimination.
         #For each number not yet set in Region:
@@ -227,6 +229,23 @@ class Sudoku:
                 cell.candidates.remove(nr)
                 if (cell.isSet()):
                     self.solvedCellMsg("AxisElimination", cell.y, cell.x, cell.getValue())
+                    self.hasChanged = True
+
+
+    def solveByExhaustion(self):
+        for y in range(9):
+            for x in range(9):
+                cell = self.getCell(y,x)
+                if not cell.isSet():
+                    for candidate in cell.candidates:
+                        if self.isValidNumber(cell, candidate):
+                            candidateStorage = cell.candidates.copy() #To preserve a list smaller than [1..9]
+                            cell.makeAbsolute(candidate)
+                            self.solveByExhaustion()
+                            if self.isSolved():
+                                return
+                            cell.candidates = candidateStorage
+                    return
 
 
     def solvedCellMsg(self, strategy, y, x, val):
@@ -242,11 +261,18 @@ class Sudoku:
         input("PRESS ENTER TO ITERATE")
         while(True):
             iterations += 1
+            self.hasChanged = False #To be proven True by the following solving functions.
             self.compareToAbsolutes()
             self.compareToCandidates(self.getCellsInRegion)
             self.compareToCandidates(self.getCellsInRow)
             self.compareToCandidates(self.getCellsInColumn)
             self.eliminateFromAxis()
+            
+            if not self.hasChanged:
+                print("UNABLE TO CONTINUE REASONING")
+                input("PRESS ENTER TO EXHAUST REMAINING POSSIBILITIES")
+                self.solveByExhaustion()
+
             self.printSudoku()
             if (self.isSolved()):
                 print("SUDOKU SOLVED IN", iterations, "ITERATIONS")
