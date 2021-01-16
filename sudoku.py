@@ -1,7 +1,8 @@
 from cell import Cell
 
 class Sudoku:
-    def __init__(self):
+    def __init__(self, debug=False):
+        self.debug = debug
         self.cells = self.initCells()
         self.hasChanged = False
 
@@ -54,11 +55,19 @@ class Sudoku:
                 self.absoluteEntry(int(char), y, x)
             if (y == 8 and x == 8):
                 clues = len([char for char in text if char != "."])
-                print("Sudoku loading complete.", clues, "clues.")
+                if (self.debug):
+                    print("Sudoku loading complete.", clues, "clues.")
                 return
             if (x == 8):
                 y += 1
             x = (x+1)%9
+    
+    def absolutesToText(self):
+        payload = ""
+        for y in range(9):
+            for x in range(9):
+                payload += str(self.getCell(y,x).getValue())
+        return payload
 
     def debugCell(self, cell):
         print("Cell", cell.y, cell.x, "| RegionID:", cell.regionID, "| Candidates:", cell.candidates)
@@ -140,7 +149,7 @@ class Sudoku:
                     if (nr in cell.candidates):
                         validCells.append(cell)
                 if (len(validCells) == 1 and not validCells[0].isSet()):
-                    validCells[0].candidates = [nr] #Remove all candidates of cell except for "nr"! Cell solved!
+                    validCells[0].makeAbsolute(nr) #Remove all candidates of cell except for "nr"! Cell solved!
                     self.solvedCellMsg(cellGroupGetter.__name__, validCells[0].y, validCells[0].x, nr)
                     self.hasChanged = True
 
@@ -194,7 +203,6 @@ class Sudoku:
             if (cell.regionID == regionID):
                 continue
             if (nr in cell.candidates and not cell.isSet()):
-                #print("DEBUG:",cellGroupGetter.__name__, "| Region:", regionID, "| AxisIndex:", axisIndex, "| Removing candidate", nr, "from cell", cell.y, cell.x)
                 self.eliminatedCandMsg("AxisElimination", cell.y, cell.x, nr)
                 cell.candidates.remove(nr)
                 if (cell.isSet()):
@@ -219,16 +227,21 @@ class Sudoku:
 
 
     def solvedCellMsg(self, strategy, y, x, val):
-        print("SOLVING with [Comp("+strategy+")]: Cell", y, x, "has been set to", val)
+        if (self.debug):
+            print("SOLVING with [Comp("+strategy+")]: Cell", y, x, "has been set to", val)
     
     def eliminatedCandMsg(self, strategy, y, x, val):
-        print("SOLVING with [Comp("+strategy+")]: Cell", y, x, "has lost candidate", val)
+        if (self.debug):
+            print("SOLVING with [Comp("+strategy+")]: Cell", y, x, "has lost candidate", val)
 
 
     def solve(self):
         iterations = 0
-        self.printSudoku()
-        input("PRESS ENTER TO ITERATE")
+        
+        if (self.debug):
+            self.printSudoku()
+            input("PRESS ENTER TO ITERATE")
+
         while(True):
             iterations += 1
             self.hasChanged = False #To be proven True by the following solving functions.
@@ -239,12 +252,13 @@ class Sudoku:
             self.eliminateFromAxis()
             
             if not self.hasChanged:
-                print("UNABLE TO CONTINUE REASONING")
-                input("PRESS ENTER TO EXHAUST REMAINING POSSIBILITIES")
+                if (self.debug):
+                    print("UNABLE TO CONTINUE REASONING")
+                    print("EXHAUSTING REMAINING POSSIBILITIES")
                 self.solveByExhaustion()
-
-            self.printSudoku()
+            
             if (self.isSolved()):
-                print("SUDOKU SOLVED IN", iterations, "ITERATIONS")
+                if (self.debug):
+                    self.printSudoku()
+                    print("SUDOKU SOLVED IN", iterations, "ITERATIONS")
                 break
-            input()
